@@ -1,5 +1,4 @@
-# pyinstaller --noconfirm --log-level=WARN --clean --distpath ".\bin\bin" --workpath ".\bin\build" --name youtusic --onefile --paths ".\spotify-env\Lib\site-packages" .\youtusic.py
-# pyinstaller --noconfirm --log-level=WARN --clean --distpath "./bin/bin" --workpath "./bin/build" --name youtusic --onefile --paths "./spotify-env/Lib/site-packages" ./youtusic.py
+# 
 # -*- coding: UTF-8 -*-
 
 # https://github.com/Cornelius-Figgle/youtusic/
@@ -24,4 +23,43 @@ __license__ = 'MIT'
 __status__ = 'Development'
 __credits__ = ['Max Harrison']
 
-# note: https://stackoverflow.com/a/51456120/19860022
+
+import os
+import sys
+from contextlib import contextmanager
+from io import BytesIO
+
+
+if hasattr(sys, '_MEIPASS'):
+    # source: https://stackoverflow.com/a/66581062/19860022
+    file_base_path = sys._MEIPASS
+    # source: https://stackoverflow.com/a/36343459/19860022
+else:
+    file_base_path = os.path.dirname(__file__)
+
+@contextmanager
+def no_stdout() -> None:
+    '''
+    Silences the `sys.stdout` of a function call 
+    
+    [Credit here](https://stackoverflow.com/a/2829036/19860022)
+
+    Example:
+    ```
+    with no_stdout():
+        do_something_noisily()
+    ```
+    '''
+
+    save_stdout = sys.stdout
+    sys.stdout = BytesIO()
+    yield
+    sys.stdout = save_stdout
+
+class dnf(Exception):
+    '''
+    Exception class for error handling
+
+    did not complete but exited fine
+    '''
+    ...
