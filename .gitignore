@@ -1,0 +1,13 @@
+youtusic-env/
+__pycache__
+!.github/*
+
+/bin
+*.env
+
+/docs/BUILDING.md
+/docs/builds*
+/docs/SECURITY.md
+/docs/INSTALLATION.md
+/docs/TODO.md
+/docs/ico/*
