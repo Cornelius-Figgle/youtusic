@@ -77,14 +77,14 @@ class Youtusic(object):
 
     def __init__(
         self, *args: object, 
-        _API_USER: str=None, _API_PASS: str=None) -> None:
+        API_USER: str=None, API_PASS: str=None) -> None:
         super().__init__(*args)
 
         self._illegalChars = ['/', '\\', ':', '*', '?', '"', '<', '>', '|']
 
         self.sp = Spotipy_(
             client_credentials_manager=SpotifyClientCredentials(
-                client_id=_API_USER, client_secret=_API_PASS
+                client_id=API_USER, client_secret=API_PASS
             )
         )
 

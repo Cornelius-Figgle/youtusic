@@ -50,13 +50,15 @@ def get_response(question: str, answers: list=None) -> int:
 
     - `question` is the full question to be asked (including any escape
     characters for nice input)
-    - `answers` is a `2D` list with each outcome in the first
+    - `answers` is an optional `2D` list with each outcome in the first
     dimension, and variations on the input of this in the second
     - `answers` should be in all lowercase
     - In addition to the passed `answers`, numbers (starting index `1`)
     and their cardinal forms will be considered as valid responses
     - Returns the option number of the chosen answer (starting 
     index `0`)
+    - If `answers` is not provided, `responses` will be returned if it
+    is not `None`
 
     ### Example:
 
@@ -76,18 +78,21 @@ def get_response(question: str, answers: list=None) -> int:
         if response is None: 
             print('Error in answer - please try again')
             continue
-        if answers:
+        elif answers:
             for i in range(len(answers)):
-                if (response in answers[i]) or (response in [str(i), num2words(i)]):
+                if (response in answers[i]) or (response in [str(i+1), num2words(i+1)]):
                     return i
             print('Error in answer - please try again')
             continue
+        else:
+            return response
 
 def main() -> NoReturn:
     '''
     The main function that handles passing or args and return values.
     Also handles the application loop and errors from functions
     '''
+    print('start')
 
     try:
         try:
@@ -101,16 +106,21 @@ def main() -> NoReturn:
         resp = get_response(
             'Playlist type? 1: Spotify, 2: YouTube \n> ', 
             [
-                ['spotify', 'sp'],
+                ['spotify', 'sp'], 
                 ['youtube', 'yt']
             ]
         )
 
-        if resp is 0:
-            playlist_uri = get_response(
-                'Playlist URL? \n>'
-            )
-            obj.sp_get_tracks(playlist_uri)
+        playlist_uri = get_response(
+            'Playlist URL? \n> '
+        )
+        
+        if resp == 0:
+            ...
+            #obj.sp_get_tracks(playlist_uri)
         
     except KeyboardInterrupt:
         sys.exit(0)
+
+#if __name__ == '__name__': 
+main()
