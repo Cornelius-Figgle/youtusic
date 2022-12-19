@@ -29,13 +29,17 @@ import sys
 from contextlib import contextmanager
 from io import BytesIO
 
+from rich import progress
+from spotipy import Spotify as Spotipy_
+from spotipy.oauth2 import SpotifyClientCredentials
+
 
 if hasattr(sys, '_MEIPASS'):
     # source: https://stackoverflow.com/a/66581062/19860022
-    file_base_path = sys._MEIPASS
+    _file_base_path = sys._MEIPASS
     # source: https://stackoverflow.com/a/36343459/19860022
 else:
-    file_base_path = os.path.dirname(__file__)
+    _file_base_path = os.path.dirname(__file__)
 
 @contextmanager
 def no_stdout() -> None:
@@ -44,8 +48,9 @@ def no_stdout() -> None:
     
     [Credit here](https://stackoverflow.com/a/2829036/19860022)
 
-    Example:
-    ```
+    ### Example:
+    
+    ```python
     with no_stdout():
         do_something_noisily()
     ```
@@ -63,3 +68,41 @@ class dnf(Exception):
     did not complete but exited fine
     '''
     ...
+
+
+class Youtusic(object):
+    '''
+    Main class for `youtusic` module
+    '''
+
+    def __init__(
+        self, *args: object, 
+        _API_USER: str=None, _API_PASS: str=None) -> None:
+        super().__init__(*args)
+
+        self._illegalChars = ['/', '\\', ':', '*', '?', '"', '<', '>', '|']
+
+        self.sp = Spotipy_(
+            client_credentials_manager=SpotifyClientCredentials(
+                client_id=_API_USER, client_secret=_API_PASS
+            )
+        )
+
+    def sp_get_tracks(self, playlist_link: str) -> list:
+        playlist_uri = playlist_link.split('/')[-1].split('?')[0]
+        song_titles = []
+
+        for song in progress.track(
+            self.sp.playlist_tracks(playlist_uri)['items'],
+            description='Listing songs...'):
+
+            track_name: str = song['track']['name']
+            artist_name: str = song['track']['artists'][0]['name']
+
+            track_name = track_name.replace(' ', '+')
+            artist_name = artist_name.replace(' ', '+')
+            song_title = f'{artist_name}+{track_name}'
+            
+            song_titles.append(song_title)
+
+        return song_titles
