@@ -11,7 +11,8 @@ PRODUCED BY MAX HARRISON, AS OF 2022
 
 It may work separately and independently of the main repo, it may not
 
- - Code (c) Max Harrison 2022
+ - Original Code (c) edsq 2022
+ - Adaptation (c) Max Harrison 2022
 
 '''
 
