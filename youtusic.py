@@ -28,11 +28,14 @@ import os
 import sys
 from contextlib import contextmanager
 from io import BytesIO
+from re import findall
+from urllib import parse
+from urllib.request import Request, urlopen
 
+import yt_dlp
 from rich import progress
 from spotipy import Spotify as Spotipy_
 from spotipy.oauth2 import SpotifyClientCredentials
-
 
 if hasattr(sys, '_MEIPASS'):
     # source: https://stackoverflow.com/a/66581062/19860022
@@ -70,30 +73,41 @@ class dnf(Exception):
     ...
 
 
-class Youtusic(object):
+class Youtusic_(object):
     '''
     Main class for `youtusic` module
     '''
 
-    def __init__(
-        self, *args: object, 
+    def __init__(self, *args: object, 
         API_USER: str=None, API_PASS: str=None) -> None:
+
         super().__init__(*args)
 
-        self._illegalChars = ['/', '\\', ':', '*', '?', '"', '<', '>', '|']
+        self._illegalChars = [
+            '/', '\\', ':', 
+            '*', '?', '"', 
+            '<', '>', '|'
+        ]
 
-        self.sp = Spotipy_(
-            client_credentials_manager=SpotifyClientCredentials(
-                client_id=API_USER, client_secret=API_PASS
+        if API_USER is not None and API_PASS is not None:  # note: if provided
+            self.sp = Spotipy_(
+                client_credentials_manager=SpotifyClientCredentials(
+                    client_id=API_USER, client_secret=API_PASS
+                )
             )
-        )
 
     def sp_get_tracks(self, playlist_link: str) -> list:
+        '''
+        Uses [spotipy](https://pypi.org/project/spotipy/) to retrieve
+        a list of songs in the playlist provided. Returns a list to be
+        used with `grab_yt_links`
+        '''
+
         playlist_uri = playlist_link.split('/')[-1].split('?')[0]
         song_titles = []
 
         for song in progress.track(
-            self.sp.playlist_tracks(playlist_uri)['items'],
+            self.sp.playlist_tracks(playlist_uri)['items'], 
             description='Listing songs...'):
 
             track_name: str = song['track']['name']
@@ -101,8 +115,38 @@ class Youtusic(object):
 
             track_name = track_name.replace(' ', '+')
             artist_name = artist_name.replace(' ', '+')
-            song_title = f'{artist_name}+{track_name}'
             
-            song_titles.append(song_title)
+            song_titles.append(f'{artist_name}+{track_name}')
 
         return song_titles
+
+    def grab_yt_links(self, song_titles: str) -> list:
+        '''
+        Parses the list returned by `sp_get_tracks` and returns a 
+        list of YouTube URLs to use for `dwld_playlists`
+        '''
+
+        yt_links = []
+
+        for song in progress.track(
+            song_titles, description='Listing URLs...'):
+
+            html_parsed_song_title = parse.quote(str(song), safe='')
+            url = Request(
+                f'https://www.youtube.com/results?search_query={html_parsed_song_title}',
+                headers = {'User-Agent': 'Mozilla/5.0'}
+            )
+
+            html_resp = urlopen(url)
+            video_ids = findall(r'watch\?v=(\S{11})', html_resp.read().decode())
+
+            yt_links.append(f'https://www.youtube.com/watch?v={video_ids[0]}')
+            # note: uses first found link
+            # future: might add preview window?
+        
+        return yt_links
+
+    def dwld_playlists(self, yt_links: list, use_playlist: bool=False):
+        print(yt_links, use_playlist)
+
+        # https://github.com/yt-dlp/yt-dlp#extract-audio

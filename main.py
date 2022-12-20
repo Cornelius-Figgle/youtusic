@@ -29,10 +29,10 @@ import os
 import sys
 from typing import NoReturn
 
-from decouple import UndefinedValueError, config
+from decouple import config
 from num2words import num2words
 
-from youtusic import Youtusic, dnf
+from youtusic import Youtusic_, dnf
 
 
 if hasattr(sys, '_MEIPASS'):
@@ -43,7 +43,7 @@ else:
     file_base_path = os.path.dirname(__file__)
 
 
-def get_response(question: str, answers: list=None) -> int:
+def get_response(question: str, answers: list=None) -> int | str:
     '''
     Function for repeatedly asking the same question until a valid
     answer is found
@@ -95,15 +95,9 @@ def main() -> NoReturn:
     print('start')
 
     try:
-        try:
-            obj = Youtusic(
-                API_USER=config('API_USER'), 
-                API_PASS=config('API_PASS')
-            )
-        except UndefinedValueError:
-            obj = Youtusic()
+        
 
-        resp = get_response(
+        playlist_provider = get_response(
             'Playlist type? 1: Spotify, 2: YouTube \n> ', 
             [
                 ['spotify', 'sp'], 
@@ -115,12 +109,25 @@ def main() -> NoReturn:
             'Playlist URL? \n> '
         )
         
-        if resp == 0:
-            ...
-            #obj.sp_get_tracks(playlist_uri)
+        if playlist_provider == 0:  # note: If using a Spotify playlist
+            obj = Youtusic_(
+                API_USER=config('API_USER'),
+                API_PASS=config('API_PASS')
+            )
+
+            track_list = obj.sp_get_tracks(playlist_uri)
+            url_list = obj.grab_yt_links(track_list)
+
+            dwld_args = [url_list]
+
+        elif playlist_provider == 1:  # note: If using a YouTube playlist
+            obj = Youtusic_()  # note: no keys
+            url_list = [playlist_uri, True]  # note: use yt playlist instead
+        
+        obj.dwld_playlists(*dwld_args)
         
     except KeyboardInterrupt:
         sys.exit(0)
 
-#if __name__ == '__name__': 
-main()
+if __name__ == '__main__': 
+    main()
