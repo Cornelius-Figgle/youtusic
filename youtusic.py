@@ -24,6 +24,7 @@ __status__ = 'Development'
 __credits__ = ['Max Harrison']
 
 
+import curses
 import os
 import sys
 from contextlib import contextmanager
@@ -33,9 +34,12 @@ from urllib import parse
 from urllib.request import Request, urlopen
 
 import yt_dlp
-from rich import progress
 from spotipy import Spotify as Spotipy_
 from spotipy.oauth2 import SpotifyClientCredentials
+from tqdm import tqdm
+
+from CursesIO import _CursesIO
+
 
 if hasattr(sys, '_MEIPASS'):
     # source: https://stackoverflow.com/a/66581062/19860022
@@ -79,7 +83,8 @@ class Youtusic_(object):
     '''
 
     def __init__(self, *args: object, 
-        API_USER: str=None, API_PASS: str=None) -> None:
+        API_USER: str=None, API_PASS: str=None,
+        stdscr: curses.window) -> None:
 
         super().__init__(*args)
 
@@ -96,6 +101,8 @@ class Youtusic_(object):
                 )
             )
 
+        self.stdscr = stdscr
+
     def sp_get_tracks(self, playlist_link: str) -> list:
         '''
         Uses [spotipy](https://pypi.org/project/spotipy/) to retrieve
@@ -106,9 +113,14 @@ class Youtusic_(object):
         playlist_uri = playlist_link.split('/')[-1].split('?')[0]
         song_titles = []
 
-        for song in progress.track(
+        self.height, self.width = self.stdscr.getmaxyx()
+        y_, x_ = self.stdscr.getyx()
+        self.curses_file = _CursesIO(stdscr=self.stdscr, y0=y_+1, x0=0)
+
+        for song in tqdm(
             self.sp.playlist_tracks(playlist_uri)['items'], 
-            description='Listing songs...'):
+            desc='Listing songs...',
+            file=self.curses_file, ascii=False, ncols=self.width):
 
             track_name: str = song['track']['name']
             artist_name: str = song['track']['artists'][0]['name']
@@ -128,8 +140,14 @@ class Youtusic_(object):
 
         yt_links = []
 
-        for song in progress.track(
-            song_titles, description='Listing URLs...'):
+        self.height, self.width = self.stdscr.getmaxyx()
+        y_, x_ = self.stdscr.getyx()
+        self.curses_file = _CursesIO(stdscr=self.stdscr, y0=y_+1, x0=0)
+
+        for song in tqdm(
+            song_titles, 
+            desc='Listing URLs...',
+            file=self.curses_file, ascii=False, ncols=self.width):
 
             html_parsed_song_title = parse.quote(str(song), safe='')
             url = Request(
@@ -147,6 +165,6 @@ class Youtusic_(object):
         return yt_links
 
     def dwld_playlists(self, yt_links: list, use_playlist: bool=False):
-        print(yt_links, use_playlist)
+        ...
 
         # https://github.com/yt-dlp/yt-dlp#extract-audio

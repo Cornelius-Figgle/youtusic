@@ -25,12 +25,14 @@ __status__ = 'Development'
 __credits__ = ['Max Harrison']
 
 
+import curses
 import os
 import sys
 from typing import NoReturn
 
 from decouple import config
 from num2words import num2words
+from pick import pick
 
 from youtusic import Youtusic_, dnf
 
@@ -87,41 +89,42 @@ def get_response(question: str, answers: list=None) -> int | str:
         else:
             return response
 
-def main() -> NoReturn:
+def main(screen) -> NoReturn:
     '''
     The main function that handles passing or args and return values.
     Also handles the application loop and errors from functions
     '''
-    print('start')
 
     try:
+        curses.echo()
         
-
-        playlist_provider = get_response(
-            'Playlist type? 1: Spotify, 2: YouTube \n> ', 
-            [
-                ['spotify', 'sp'], 
-                ['youtube', 'yt']
-            ]
+        playlist_provider = pick(
+            ['Spotify', 'Youtube'], 
+            'Playlist type?',
+            screen=screen
         )
 
-        playlist_uri = get_response(
-            'Playlist URL? \n> '
-        )
-        
-        if playlist_provider == 0:  # note: If using a Spotify playlist
+        screen.addstr('\n\nPlaylist URL? \n> ') ; screen.refresh()
+        playlist_uri = str(screen.getstr())
+
+        if playlist_provider[1] == 0:  # note: If using a Spotify playlist
             obj = Youtusic_(
                 API_USER=config('API_USER'),
-                API_PASS=config('API_PASS')
+                API_PASS=config('API_PASS'),
+                stdscr=screen
             )
+
+            screen.addstr('\n') ; screen.refresh()
 
             track_list = obj.sp_get_tracks(playlist_uri)
             url_list = obj.grab_yt_links(track_list)
 
             dwld_args = [url_list]
 
-        elif playlist_provider == 1:  # note: If using a YouTube playlist
-            obj = Youtusic_()  # note: no keys
+        elif playlist_provider[1] == 1:  # note: If using a YouTube playlist
+            obj = Youtusic_(
+                stdscr=screen
+            )  # note: no API keys b/c no `spotipy`
             url_list = [playlist_uri, True]  # note: use yt playlist instead
         
         obj.dwld_playlists(*dwld_args)
@@ -130,4 +133,5 @@ def main() -> NoReturn:
         sys.exit(0)
 
 if __name__ == '__main__': 
-    main()
+    curses.wrapper(main)
+    #main()
