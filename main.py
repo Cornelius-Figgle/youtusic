@@ -162,10 +162,10 @@ def main(screen: curses.window) -> NoReturn:
                         indicator='>'
                     )
 
-                    if confirm == 'Yes':
-                        return _confirm_correct(dwld_path)
-                    else:
-                        return False, None            
+                    if confirm != 'Yes':
+                        return False, None
+
+            return _confirm_correct(dwld_path)    
 
         while True:
             valid, dwld_path = check_path()
@@ -178,7 +178,7 @@ def main(screen: curses.window) -> NoReturn:
         obj.process_files(url_list, track_list, dwld_path)
 
         screen.addstr(f'Complete! Files can be found at "{dwld_path}"')
-        screen.getwch()
+        screen.get_wch()
         
     except KeyboardInterrupt:
         pass

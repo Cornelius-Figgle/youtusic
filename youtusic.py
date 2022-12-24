@@ -192,6 +192,7 @@ class Youtusic_:
             'quiet': True,
             'noprogress': False,
             'format': 'mp4/bestaudio/best',
+            'outtmpl': {'default': '%(id)s.%(ext)s'},
             # note: See help(yt_dlp.postprocessor) for a list of available Postprocessors and their arguments
             #'postprocessors': [{'key': 'FFmpegExtractAudio', 'preferredcodec': 'm4a',}]   # note: Extract audio using ffmpeg
         }
@@ -227,9 +228,10 @@ class Youtusic_:
         self, yt_links: list, song_titles: list, dwld_path: str,
         rename_pattern: Template=Template('${artist} - ${title}')) -> None:
         '''
-        Loops over all matching files in `dwld_path` to rename to 
-        match `rename_pattern` (a `string.Template` object) and convert
-        to `MP3`
+        Loops over all matching files in `dwld_path` and converts to 
+        MP3. Will rename to match `rename_pattern` (a `string.Template`
+        object) from `spotipy` info if `self.sp_available` is True, 
+        will use `YouTube` video titles if there is no Spotify
         '''
 
         if self.use_curses:
@@ -255,7 +257,7 @@ class Youtusic_:
 
             video_title_path = os.path.join(
                 dwld_path,
-                f'{video_title} [{video_id}].mp4'
+                f'{video_id}.mp4'
             )
 
             if self.sp_available:
@@ -264,6 +266,8 @@ class Youtusic_:
                     artist=song_info['artist'], 
                     title=song_info['title']
                 )
+            else:
+                track_name = video_title
 
             for char in track_name:
                 if char in self.illegal_chars:
