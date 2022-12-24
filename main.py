@@ -105,11 +105,14 @@ def main(screen: curses.window) -> NoReturn:
             }
 
         obj = Youtusic_(**youtusic_args)
+
+        for line in obj.title:
+            screen.addstr(line)
         
         y_, _ = screen.getyx()
         playlist_provider_name, _ = pick(
             ['Spotify', 'Youtube'], 
-            'Playlist type?',
+            '\nPlaylist type?',
             screen=screen,
             position={'y0': y_, 'x0': 0},
             indicator='>'

@@ -51,6 +51,16 @@ class Youtusic_:
         self, API_USER: str=None, API_PASS: str=None, 
         use_curses: bool=True, stdscr: curses.window=None) -> None:
 
+        self.title = [
+            ' __     __         _             _      \n',
+            ' \ \   / /        | |           (_)     \n',
+            '  \ \_/ /__  _   _| |_ _   _ ___ _  ___ \n',
+            '   \   / _ \| | | | __| | | / __| |/ __|\n',
+            '    | | (_) | |_| | |_| |_| \__ \ | (__ \n',
+            '    |_|\___/ \__,_|\__|\__,_|___/_|\___|\n',
+            '========================================\n'
+        ]
+
         self.illegal_chars = [
             '/', '\\', ':', 
             '*', '?', '"', 
