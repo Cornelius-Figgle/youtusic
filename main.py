@@ -110,7 +110,7 @@ def main(screen: curses.window) -> NoReturn:
         
         y_, _ = screen.getyx()
         playlist_provider_name, _ = pick(
-            ['Spotify', 'Youtube'], 
+            ['Spotify', 'Youtube', 'csv'], 
             '\nPlaylist type?',
             screen=screen,
             position={'y0': y_, 'x0': 0},
@@ -127,6 +127,10 @@ def main(screen: curses.window) -> NoReturn:
 
         elif playlist_provider_name == 'Youtube':
             ...
+
+        elif playlist_provider_name == 'csv':
+            track_list = obj.csv_get_tracks(playlist_uri)
+            url_list = obj.grab_yt_links(track_list)
         
         def check_path() -> tuple[False, None] | tuple[True, str]:
             screen.addstr('\nDownload Folder? \n> ') ; screen.refresh()

@@ -24,6 +24,7 @@ __status__ = 'Development'
 __credits__ = ['Max Harrison']
 
 
+import csv
 import curses
 import os
 from re import findall
@@ -124,6 +125,47 @@ class Youtusic_:
         for song in tqdm(api_response, **tqdm_args):
             track_name: str = song['track']['name']
             artist_name: str = song['track']['artists'][0]['name']
+            
+            song_titles.append(
+                {
+                    'artist': artist_name,
+                    'title': track_name
+                }
+            )
+
+        return song_titles
+    
+    def csv_get_tracks(self, file_path: str) -> list:
+        '''
+        Uses `csv` to retrieve a list of songs from `file_path` 
+        provided. Returns a list to be used with `grab_yt_links`
+        '''
+
+        with open(file_path, newline='') as file:
+            reader = csv.reader(file)
+            csv_content = list(reader)
+
+        song_titles = []
+
+        if self.use_curses:
+            self.height, self.width = self.stdscr.getmaxyx()
+            y_, _ = self.stdscr.getyx()
+            self.curses_file = _CursesIO(stdscr=self.stdscr, y0=y_+1, x0=0)
+
+            tqdm_args = {
+                'desc': 'Listing songs...',
+                'file': self.curses_file, 
+                'ascii': False, 
+                'ncols': self.width
+            }
+        else:
+            tqdm_args = {
+                'desc': 'Listing songs...'
+            }
+
+        for song in tqdm(csv_content, **tqdm_args):
+            track_name: str = song[1]
+            artist_name: str = song[0]
             
             song_titles.append(
                 {
