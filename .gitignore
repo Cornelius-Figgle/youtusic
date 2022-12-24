@@ -5,6 +5,7 @@ __pycache__
 /bin
 *.env
 .cache
+*.spec
 
 ./tests/*
 !./tests/example_csv.csv

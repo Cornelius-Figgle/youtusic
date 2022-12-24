@@ -1,5 +1,5 @@
-# pyinstaller --noconfirm --log-level=WARN --clean --distpath ".\bin\bin" --workpath ".\bin\build" --name youtusic --onefile --paths ".\spotify-env\Lib\site-packages" .\main.py
-# pyinstaller --noconfirm --log-level=WARN --clean --distpath "./bin/bin" --workpath "./bin/build" --name youtusic --onefile --paths "./spotify-env/Lib/site-packages" ./main.py
+# pyinstaller --noconfirm --log-level=WARN --clean --distpath ".\bin\bin" --workpath ".\bin\build" --name youtusic --onefile --paths ".\youtusic-env\Lib\site-packages" .\main.py
+# pyinstaller --noconfirm --log-level=WARN --clean --distpath "./bin/bin" --workpath "./bin/build" --name youtusic --onefile --paths "./youtusic-env/Lib/site-packages" ./main.py
 # -*- coding: UTF-8 -*-
 
 # https://github.com/Cornelius-Figgle/youtusic/

@@ -2,7 +2,7 @@
 
 A [yt-dlp](https://github.com/yt-dlp/yt-dlp) wrapper that downloads songs from Spotify and YouTube playlists! (csv coming soon)
 
-## Installation 
+## Installation
 
 ### Source
 
