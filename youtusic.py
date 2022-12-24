@@ -42,15 +42,6 @@ from tqdm import tqdm
 from CursesIO import _CursesIO
 
 
-class dnf(Exception):
-    '''
-    Exception class for error handling
-
-    did not complete but exited fine
-    '''
-    ...
-
-
 class Youtusic_:
     '''
     Main class for `youtusic` module
@@ -255,9 +246,6 @@ class Youtusic_:
             video_title = yt.title
             video_id = str(yt)[-12:-1]
 
-            for char in video_title:
-                if char in self.illegal_chars:
-                    video_title = video_title.replace(char, '_')
             video_title_path = os.path.join(
                 dwld_path,
                 f'{video_title} [{video_id}].mp4'

@@ -33,7 +33,7 @@ from decouple import UndefinedValueError, config
 from num2words import num2words
 from pick import pick  # note: `pip install git+https://github.com/Cornelius-Figgle/pick.git@master` until PR is merged
 
-from youtusic import Youtusic_, dnf
+from youtusic import Youtusic_
 
 
 def get_response(question: str, answers: list=None) -> int | str:
