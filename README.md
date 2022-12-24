@@ -16,3 +16,9 @@ or, when inside repo root:
 ```shell
 pip install -r ./docs/requirements.txt
 ```
+
+`pick` should be installed via my GitHub until my [pull request](https://github.com/wong2/pick/pull/95) is merged into the `master` branch of [pick](https://github.com/wong2/pick/)
+
+### Binaries / Releases
+
+*coming soon*
