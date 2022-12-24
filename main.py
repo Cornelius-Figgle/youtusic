@@ -30,7 +30,6 @@ import os
 from typing import NoReturn
 
 from decouple import UndefinedValueError, config
-from num2words import num2words
 from pick import pick  # note: `pip install git+https://github.com/Cornelius-Figgle/pick.git@master` until PR is merged
 
 from youtusic import Youtusic_
@@ -74,7 +73,7 @@ def get_response(question: str, answers: list=None) -> int | str:
             continue
         elif answers:
             for i in range(len(answers)):
-                if (response in answers[i]) or (response in [str(i+1), num2words(i+1)]):
+                if (response in answers[i]) or (response in [str(i+1)]):
                     return i
             print('Error in answer - please try again')
             continue
