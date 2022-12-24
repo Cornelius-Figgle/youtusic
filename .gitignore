@@ -7,6 +7,7 @@ __pycache__
 .cache
 
 test*
+dwld
 
 /docs/BUILDING.md
 /docs/builds*

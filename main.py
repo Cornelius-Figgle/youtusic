@@ -27,28 +27,20 @@ __credits__ = ['Max Harrison']
 
 import curses
 import os
-import sys
 from typing import NoReturn
 
-from decouple import config
+from decouple import UndefinedValueError, config
 from num2words import num2words
-from pick import pick
+from pick import pick  # note: `pip install git+https://github.com/Cornelius-Figgle/pick.git@master` until PR is merged
 
 from youtusic import Youtusic_, dnf
-
-
-if hasattr(sys, '_MEIPASS'):
-    # source: https://stackoverflow.com/a/66581062/19860022
-    file_base_path = sys._MEIPASS
-    # source: https://stackoverflow.com/a/36343459/19860022
-else:
-    file_base_path = os.path.dirname(__file__)
 
 
 def get_response(question: str, answers: list=None) -> int | str:
     '''
     Function for repeatedly asking the same question until a valid
-    answer is found
+    answer is found (only to be used when not in `curses`, use 
+    `pick.pick()` instead when running with `curses`)
 
     - `question` is the full question to be asked (including any escape
     characters for nice input)
@@ -89,7 +81,7 @@ def get_response(question: str, answers: list=None) -> int | str:
         else:
             return response
 
-def main(screen) -> NoReturn:
+def main(screen: curses.window) -> NoReturn:
     '''
     The main function that handles passing or args and return values.
     Also handles the application loop and errors from functions
@@ -97,41 +89,96 @@ def main(screen) -> NoReturn:
 
     try:
         curses.echo()
+        curses.curs_set(0)
+
+        try:
+            youtusic_args = {
+                'API_USER': config('SPOTIPY_CLIENT_ID'),
+                'API_PASS': config('SPOTIPY_CLIENT_SECRET'),
+                'use_curses': True,
+                'stdscr': screen
+            }
+        except UndefinedValueError:
+            youtusic_args = {
+                'use_curses': True,
+                'stdscr': screen
+            }
+
+        obj = Youtusic_(**youtusic_args)
         
-        playlist_provider = pick(
+        y_, _ = screen.getyx()
+        playlist_provider_name, _ = pick(
             ['Spotify', 'Youtube'], 
             'Playlist type?',
-            screen=screen
+            screen=screen,
+            position={'y0': y_, 'x0': 0},
+            indicator='>'
         )
 
-        screen.addstr('\n\nPlaylist URL? \n> ') ; screen.refresh()
+        screen.addstr('\nPlaylist URL? \n> ') ; screen.refresh()
         playlist_uri = str(screen.getstr())
 
-        if playlist_provider[1] == 0:  # note: If using a Spotify playlist
-            obj = Youtusic_(
-                API_USER=config('API_USER'),
-                API_PASS=config('API_PASS'),
-                stdscr=screen
-            )
-
-            screen.addstr('\n') ; screen.refresh()
-
+        if playlist_provider_name == 'Spotify':
+            # note: for Spotify playlist
             track_list = obj.sp_get_tracks(playlist_uri)
             url_list = obj.grab_yt_links(track_list)
 
-            dwld_args = [url_list]
-
-        elif playlist_provider[1] == 1:  # note: If using a YouTube playlist
-            obj = Youtusic_(
-                stdscr=screen
-            )  # note: no API keys b/c no `spotipy`
-            url_list = [playlist_uri, True]  # note: use yt playlist instead
+        elif playlist_provider_name == 'Youtube':
+            ...
         
-        obj.dwld_playlists(*dwld_args)
+        def check_path() -> tuple[False, None] | tuple[True, str]:
+            screen.addstr('\nDownload Folder? \n> ') ; screen.refresh()
+            dwld_path = os.path.abspath(screen.getstr().decode('utf-8'))
+
+            def _confirm_correct(dwld_path: str) -> tuple[True, str] | tuple[False, None]:
+                y_, _ = screen.getyx()
+                confirm, _ = pick(
+                    ['Yes', 'No'], 
+                    f'\nIs This Path Correct? \t{dwld_path}',
+                    screen=screen,
+                    position={'y0': y_, 'x0': 0},
+                    indicator='>'
+                )
+                        
+                if confirm == 'Yes':
+                    return True, dwld_path
+                else:
+                    return False, None
+
+            if not os.access(dwld_path, os.X_OK | os.W_OK):
+                if not os.access(os.path.dirname(dwld_path), os.X_OK | os.W_OK):
+                    screen.addstr('\nSorry, invalid path. If path is relative, please prefix with "./" or ".\\"')
+                    return False, None
+                else:
+                    y_, _ = screen.getyx()
+                    confirm, _ = pick(
+                        ['Yes', 'No'], 
+                        f'\nDo You Wish To Create Child Folder "{os.path.basename(os.path.normpath(dwld_path))}" In Parent "{os.path.dirname(dwld_path)}"?',
+                        screen=screen,
+                        position={'y0': y_, 'x0': 0},
+                        indicator='>'
+                    )
+
+                    if confirm == 'Yes':
+                        return _confirm_correct(dwld_path)
+                    else:
+                        return False, None            
+
+        while True:
+            valid, dwld_path = check_path()
+            if not valid:
+                continue
+            if valid:
+                break
+        
+        ret_code = obj.dwld_playlists(url_list, dwld_path)
+        obj.process_files(url_list, track_list, dwld_path)
+
+        screen.addstr(f'Complete! Files can be found at "{dwld_path}"')
+        screen.getwch()
         
     except KeyboardInterrupt:
-        sys.exit(0)
+        pass
 
 if __name__ == '__main__': 
     curses.wrapper(main)
-    #main()

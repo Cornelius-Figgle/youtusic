@@ -41,7 +41,7 @@ class _CursesIO:
     from CursesIO import _CursesIO
 
     height, width = stdscr.getmaxyx()
-    curses_file = _CursesIO(stdscr)
+    curses_file = _CursesIO(stdscr=stdscr, y0=1, x0=0)
 
     for i in tqdm(range(100), file=curses_file, ascii=False, ncols=width):
         curses.napms(100)  # note: sleep for 100 ms

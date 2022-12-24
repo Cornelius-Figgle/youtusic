@@ -26,47 +26,21 @@ __credits__ = ['Max Harrison']
 
 import curses
 import os
-import sys
-from contextlib import contextmanager
-from io import BytesIO
 from re import findall
+from string import Template
 from urllib import parse
 from urllib.request import Request, urlopen
 
 import yt_dlp
+from moviepy.editor import VideoFileClip
+from pytube import YouTube
+from requests.exceptions import ConnectionError
 from spotipy import Spotify as Spotipy_
-from spotipy.oauth2 import SpotifyClientCredentials
+from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOauthError
 from tqdm import tqdm
 
 from CursesIO import _CursesIO
 
-
-if hasattr(sys, '_MEIPASS'):
-    # source: https://stackoverflow.com/a/66581062/19860022
-    _file_base_path = sys._MEIPASS
-    # source: https://stackoverflow.com/a/36343459/19860022
-else:
-    _file_base_path = os.path.dirname(__file__)
-
-@contextmanager
-def no_stdout() -> None:
-    '''
-    Silences the `sys.stdout` of a function call 
-    
-    [Credit here](https://stackoverflow.com/a/2829036/19860022)
-
-    ### Example:
-    
-    ```python
-    with no_stdout():
-        do_something_noisily()
-    ```
-    '''
-
-    save_stdout = sys.stdout
-    sys.stdout = BytesIO()
-    yield
-    sys.stdout = save_stdout
 
 class dnf(Exception):
     '''
@@ -77,30 +51,44 @@ class dnf(Exception):
     ...
 
 
-class Youtusic_(object):
+class Youtusic_:
     '''
     Main class for `youtusic` module
     '''
 
-    def __init__(self, *args: object, 
-        API_USER: str=None, API_PASS: str=None,
-        stdscr: curses.window) -> None:
+    def __init__(
+        self, API_USER: str=None, API_PASS: str=None, 
+        use_curses: bool=True, stdscr: curses.window=None) -> None:
 
-        super().__init__(*args)
-
-        self._illegalChars = [
+        self.illegal_chars = [
             '/', '\\', ':', 
             '*', '?', '"', 
             '<', '>', '|'
         ]
 
-        if API_USER is not None and API_PASS is not None:  # note: if provided
+        if API_USER is not None and API_PASS is not None:
+            # note: if provided
+            client_auth = {
+                'client_id': API_USER, 
+                'client_secret': API_PASS
+            }
+        else:
+            client_auth = {}
+            # note: `spotipy` will handle env vars 
+            # future: add a prompt?
+
+        try:
             self.sp = Spotipy_(
-                client_credentials_manager=SpotifyClientCredentials(
-                    client_id=API_USER, client_secret=API_PASS
+            client_credentials_manager=SpotifyClientCredentials(
+                **client_auth
                 )
             )
 
+            self.sp_available = True
+        except SpotifyOauthError:
+            self.sp_available = False
+
+        self.use_curses = use_curses
         self.stdscr = stdscr
 
     def sp_get_tracks(self, playlist_link: str) -> list:
@@ -113,26 +101,42 @@ class Youtusic_(object):
         playlist_uri = playlist_link.split('/')[-1].split('?')[0]
         song_titles = []
 
-        self.height, self.width = self.stdscr.getmaxyx()
-        y_, x_ = self.stdscr.getyx()
-        self.curses_file = _CursesIO(stdscr=self.stdscr, y0=y_+1, x0=0)
+        if self.use_curses:
+            self.height, self.width = self.stdscr.getmaxyx()
+            y_, _ = self.stdscr.getyx()
+            self.curses_file = _CursesIO(stdscr=self.stdscr, y0=y_+1, x0=0)
 
-        for song in tqdm(
-            self.sp.playlist_tracks(playlist_uri)['items'], 
-            desc='Listing songs...',
-            file=self.curses_file, ascii=False, ncols=self.width):
+            tqdm_args = {
+                'desc': 'Listing songs...',
+                'file': self.curses_file, 
+                'ascii': False, 
+                'ncols': self.width
+            }
+        else:
+            tqdm_args = {
+                'desc': 'Listing songs...'
+            }
 
+        api_response = self.sp.playlist_items(playlist_uri)['items']
+        # future: `requests.exceptions.ConnectionError`
+
+        for song in tqdm(api_response, **tqdm_args):
             track_name: str = song['track']['name']
             artist_name: str = song['track']['artists'][0]['name']
 
             track_name = track_name.replace(' ', '+')
             artist_name = artist_name.replace(' ', '+')
             
-            song_titles.append(f'{artist_name}+{track_name}')
+            song_titles.append(
+                {
+                    'artist': artist_name,
+                    'title': track_name
+                }
+            )
 
         return song_titles
 
-    def grab_yt_links(self, song_titles: str) -> list:
+    def grab_yt_links(self, song_titles: list) -> list:
         '''
         Parses the list returned by `sp_get_tracks` and returns a 
         list of YouTube URLs to use for `dwld_playlists`
@@ -140,16 +144,29 @@ class Youtusic_(object):
 
         yt_links = []
 
-        self.height, self.width = self.stdscr.getmaxyx()
-        y_, x_ = self.stdscr.getyx()
-        self.curses_file = _CursesIO(stdscr=self.stdscr, y0=y_+1, x0=0)
+        if self.use_curses:
+            self.height, self.width = self.stdscr.getmaxyx()
+            y_, _ = self.stdscr.getyx()
+            self.curses_file = _CursesIO(stdscr=self.stdscr, y0=y_+1, x0=0)
 
-        for song in tqdm(
-            song_titles, 
-            desc='Listing URLs...',
-            file=self.curses_file, ascii=False, ncols=self.width):
+            tqdm_args = {
+                'desc': 'Listing URLs...',
+                'file': self.curses_file, 
+                'ascii': False, 
+                'ncols': self.width
+            }
+        else:
+            tqdm_args = {
+                'desc': 'Listing URLs...'
+            }
 
-            html_parsed_song_title = parse.quote(str(song), safe='')
+        for song in tqdm(song_titles, **tqdm_args):
+            song_artist = song['artist'].replace(' ', '+')
+            song_title = song['title'].replace(' ', '+')
+            song_name = f'{song_artist}+-+{song_title}'
+            # note: constructs search phrase
+
+            html_parsed_song_title = parse.quote(str(song_name), safe='')
             url = Request(
                 f'https://www.youtube.com/results?search_query={html_parsed_song_title}',
                 headers = {'User-Agent': 'Mozilla/5.0'}
@@ -164,7 +181,110 @@ class Youtusic_(object):
         
         return yt_links
 
-    def dwld_playlists(self, yt_links: list, use_playlist: bool=False):
-        ...
+    def dwld_playlists(self, yt_links: list, dwld_path: str) -> dict:
+        '''
+        Wrapper for `yt_dlp.YoutubeDL`. Passes URLs `yt_links` one at a
+        time (just to make my own progress bar). Returns a dictionary
+        of any videos that raised an error, with the title of the video
+        as the key
+        '''
 
-        # https://github.com/yt-dlp/yt-dlp#extract-audio
+        ydl_opts = {
+            'paths': {'home': dwld_path},
+            'quiet': True,
+            'noprogress': False,
+            'format': 'mp4/bestaudio/best',
+            # note: See help(yt_dlp.postprocessor) for a list of available Postprocessors and their arguments
+            #'postprocessors': [{'key': 'FFmpegExtractAudio', 'preferredcodec': 'm4a',}]   # note: Extract audio using ffmpeg
+        }
+
+        if self.use_curses:
+            self.height, self.width = self.stdscr.getmaxyx()
+            y_, _ = self.stdscr.getyx()
+            self.curses_file = _CursesIO(stdscr=self.stdscr, y0=y_+1, x0=0)
+
+            tqdm_args = {
+                'desc': 'Downloading Videos...',
+                'file': self.curses_file, 
+                'ascii': False, 
+                'ncols': self.width
+            }
+        else:
+            tqdm_args = {
+                'desc': 'Downloading Videos...'
+            }
+
+        error_codes = {}
+
+        for video_url in tqdm(yt_links, **tqdm_args):
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                error_code = ydl.download([video_url])
+            if error_code != 0:
+                video_title = YouTube(video_url).title
+                error_codes[video_title] = error_code
+        
+        return error_codes
+
+    def process_files(
+        self, yt_links: list, song_titles: list, dwld_path: str,
+        rename_pattern: Template=Template('${artist} - ${title}')) -> None:
+        '''
+        Loops over all matching files in `dwld_path` to rename to 
+        match `rename_pattern` (a `string.Template` object) and convert
+        to `MP3`
+        '''
+
+        if self.use_curses:
+            self.height, self.width = self.stdscr.getmaxyx()
+            y_, _ = self.stdscr.getyx()
+            self.curses_file = _CursesIO(stdscr=self.stdscr, y0=y_+1, x0=0)
+
+            tqdm_args = {
+                'desc': 'Converting Files...',
+                'file': self.curses_file, 
+                'ascii': False, 
+                'ncols': self.width
+            }
+        else:
+            tqdm_args = {
+                'desc': 'Converting Files...'
+            }
+
+        for video_url in tqdm(yt_links, **tqdm_args):
+            yt = YouTube(video_url)
+            video_title = yt.title
+            video_id = str(yt)[-12:-1]
+
+            for char in video_title:
+                if char in self.illegal_chars:
+                    video_title = video_title.replace(char, '_')
+            video_title_path = os.path.join(
+                dwld_path,
+                f'{video_title} [{video_id}].mp4'
+            )
+
+            if self.sp_available:
+                song_info = song_titles[yt_links.index(video_url)]
+                track_name = rename_pattern.substitute(
+                    artist=song_info['artist'], 
+                    title=song_info['title']
+                )
+
+            for char in track_name:
+                if char in self.illegal_chars:
+                    track_name = track_name.replace(char, '_')
+            track_name_path = os.path.join(
+                dwld_path,
+                f'{track_name}.mp3'
+            )
+                
+            video_clip = VideoFileClip(video_title_path)            
+            audio_clip = video_clip.audio
+            audio_clip.write_audiofile(track_name_path)
+                
+            audio_clip.close()
+            video_clip.close()
+
+            os.remove(video_title_path)
+
+        return None
