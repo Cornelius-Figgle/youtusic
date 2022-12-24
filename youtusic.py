@@ -124,9 +124,6 @@ class Youtusic_:
         for song in tqdm(api_response, **tqdm_args):
             track_name: str = song['track']['name']
             artist_name: str = song['track']['artists'][0]['name']
-
-            track_name = track_name.replace(' ', '+')
-            artist_name = artist_name.replace(' ', '+')
             
             song_titles.append(
                 {
