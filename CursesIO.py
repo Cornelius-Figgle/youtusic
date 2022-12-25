@@ -32,8 +32,8 @@ import curses
 
 class _CursesIO:
     '''
-    Class faking io.StringIO so we can print `tqdm.tqdm` output to a
-    curses screen. `stdscr` is the `curses.window` object to write to
+    Class faking `io.StringIO` so we can print `tqdm.tqdm` output to a
+    `curses` screen. `stdscr` is the `curses.window` object to write to
 
     ### Example
 
