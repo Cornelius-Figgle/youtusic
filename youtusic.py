@@ -105,7 +105,7 @@ class Youtusic_:
 
         if self.use_curses:
             self.height, self.width = self.stdscr.getmaxyx()
-            y_, _ = self.stdscr.getyx()
+            y_, _ = self.stdscr.getyx() ; del _
             self.curses_file = _CursesIO(stdscr=self.stdscr, y0=y_+1, x0=0)
 
             tqdm_args = {
@@ -149,7 +149,7 @@ class Youtusic_:
 
         if self.use_curses:
             self.height, self.width = self.stdscr.getmaxyx()
-            y_, _ = self.stdscr.getyx()
+            y_, _ = self.stdscr.getyx() ; del _
             self.curses_file = _CursesIO(stdscr=self.stdscr, y0=y_+1, x0=0)
 
             tqdm_args = {
@@ -186,7 +186,7 @@ class Youtusic_:
 
         if self.use_curses:
             self.height, self.width = self.stdscr.getmaxyx()
-            y_, _ = self.stdscr.getyx()
+            y_, _ = self.stdscr.getyx() ; del _
             self.curses_file = _CursesIO(stdscr=self.stdscr, y0=y_+1, x0=0)
 
             tqdm_args = {
@@ -278,7 +278,7 @@ class Youtusic_:
 
         if self.use_curses:
             self.height, self.width = self.stdscr.getmaxyx()
-            y_, _ = self.stdscr.getyx()
+            y_, _ = self.stdscr.getyx() ; del _
             self.curses_file = _CursesIO(stdscr=self.stdscr, y0=y_+1, x0=0)
 
             tqdm_args = {
