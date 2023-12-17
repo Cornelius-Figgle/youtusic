@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "youtusic"
+version = "2.0.0"
+description = "A curses-based TUI for managing music across platforms"
+authors = ["Cornelius-Figgle <max@fullimage.net>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pick = {git = "https://github.com/Cornelius-Figgle/pick.git", rev = "master"}
+tomli-w = "^1.0.0"
+
+[tool.poetry.group.dev]
+optional = true
+
+[tool.poetry.group.dev.dependencies]
+isort = "^5.13.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

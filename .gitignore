@@ -1,16 +1,7 @@
-youtusic-env/
+.venv/
 __pycache__
 !.github/*
 
-/bin
 *.env
 .cache
 *.spec
-
-./tests/*
-!./tests/example_csv.csv
-dwld
-
-/docs/BUILDING.md
-/docs/builds*
-/docs/INSTALLATION.md

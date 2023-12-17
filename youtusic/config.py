@@ -1,0 +1,126 @@
+# !/usr/bin/env python3
+# -*- coding: UTF-8 -*-
+
+# source: https://github.com/Cornelius-Figgle/youtusic/
+
+'''
+Parses the command-line arguements and the TOML config file as well as forming
+a final dictionary based on these and preset defaults
+'''
+
+'''
+THIS FILE IS PART OF THE `youtusic` REPO, MAINTAINED AND 
+PRODUCED BY MAX HARRISON, AS OF 2023
+
+It may work separately and independently of the main repo, it may not
+
+ - Code (c) Max Harrison 2023
+'''
+
+__version__ = '2.0.0'  
+__author__ = 'Cornelius-Figgle'
+__email__ = 'max@fullimage.net'
+__maintainer__ = 'Cornelius-Figgle'
+__copyright__ = 'Copyright (c) 2023 Max Harrison'
+__license__ = 'MIT'
+__status__ = 'Development'
+__credits__ = ['Max Harrison', 'edsq']
+
+
+import tomllib
+from argparse import ArgumentParser
+
+
+def parse_arg_line(argv: list) -> dict:
+    '''
+    create a config from the command-line arguements passed to the program
+    '''
+
+    # create main object
+    parser = ArgumentParser(
+        description='A curses-based TUI for managing music across platforms',
+        epilog='For additional support and help, please visit ' \
+            'https://github.com/Cornelius-Figgle/youtusic or drop an email to max@fullimage.net'
+    )
+
+    # version arg
+    parser.add_argument('-V', '--version', action='version', version=f'%(prog)s {__version__}')
+
+    # create subparser object
+    subparsers = parser.add_subparsers(help='sub-command help')
+
+    # add subparsers
+    parser_sync = subparsers.add_parser('sync', help='sync help')
+    parser_group = subparsers.add_parser('group', help='group help')
+    parser_auth = subparsers.add_parser('auth', help='auth help')
+
+    # return config set by command line
+    return parser.parse_args(argv)
+
+def parse_user_config() -> dict:
+    ''' 
+    create a config from the `config.toml` file
+    '''
+
+    # lists possible config file locations
+    if os.name in ('dos', 'nt'):  # if Windows
+        file_paths = [
+            os.path.join(
+                os.environ['APPDATA'],
+                'youtusic',
+                'config.toml'
+            ),  # %APPDATA%\youtusic\config.toml
+            os.path.join(
+                os.path.expanduser('~'),
+                'AppData',
+                'Roaming',
+                'youtusic',
+                'config.toml'
+            ),  # %USERPROFILE%\AppData\Roaming\youtusic\config.toml
+            os.path.join(
+                os.path.expanduser('~'),
+                '.config',
+                'youtusic',
+                'config.toml'
+            )  # %USERPROFILE%\.config\youtusic\config.toml
+        ]
+    else:  # if not Windows
+        file_paths = [
+            os.path.join(
+                os.environ['XDG_CONFIG_HOME'],
+                'youtusic', 
+                'config.toml'
+            ),  # $XDG_CONFIG_HOME/youtusic/config.toml
+            os.path.join(
+                os.path.expanduser('~'),
+                '.config',
+                'youtusic',
+                'config.toml'
+            )  # ~/.config/youtusic/config.toml
+        ]
+
+    # check each path and use the first one that exists
+    for path in file_paths:
+        if os.path.exists(path):
+            # load file and return the subsequent dictionary
+            with open(path, 'rb') as file:
+                return tomllib.load(file)
+            break
+        else:
+            continue
+
+        # if no file found, return blank dict
+        return {}
+
+def generate_final_config(argv: list) -> dict:
+    '''
+    Combines configuration from command-line arguements, the user config file
+    and default options
+    '''
+
+    arg_cfg = parse_arg_line(argv)
+    file_cfg = parse_user_config()
+    default_cfg = {}
+
+    # merge arg onto file, then the result onto the default
+    return {**default_cfg, **{**file_cfg, **arg_cfg}}
