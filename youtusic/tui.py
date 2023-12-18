@@ -49,8 +49,6 @@ def main(stdscr: curses.window) -> NoReturn:
     curses.echo()
     curses.curs_set(0)
     curses.use_default_colors()
-
-    print('tui')
-    
+   
     stdscr.addstr(str(user_config))
     stdscr.get_wch()
