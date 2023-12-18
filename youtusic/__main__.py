@@ -26,10 +26,10 @@ __status__ = 'Development'
 __credits__ = ['Max Harrison', 'edsq']
 
 
-import curses
+from curses import wrapper
 
 from youtusic.tui import main
 
 
 if __name__ == '__main__': 
-    curses.wrapper(main)  # start curses application
+    wrapper(main)  # start curses application

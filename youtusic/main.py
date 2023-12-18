@@ -26,6 +26,10 @@ __status__ = 'Development'
 __credits__ = ['Max Harrison', 'edsq']
 
 
+import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials
+
+
 class Youtusic_:
     def __init__(self) -> None:
         '''
@@ -33,3 +37,5 @@ class Youtusic_:
         '''
 
         ...
+
+    

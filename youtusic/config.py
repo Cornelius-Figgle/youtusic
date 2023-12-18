@@ -102,9 +102,19 @@ def parse_user_config() -> dict:
     # check each path and use the first one that exists
     for path in file_paths:
         if os.path.exists(path):
+            # get path for authentication config
+            # split to allow main configuration to be seperated from auth keys
+            # this allows it to be stored more securely/outside the repo
+            auth_path = os.path.join(
+                os.path.dirname(path),
+                'auth.toml'
+            )
+            
             # load file and return the subsequent dictionary
-            with open(path, 'rb') as file:
-                return tomllib.load(file)
+            with open(path, 'rb') as file, open(auth_path, 'rb') as auth_file:
+
+                # merge main and auth files
+                return {**tomllib.load(file), **tomllib.load(auth_file)}
             break
         else:
             continue

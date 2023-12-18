@@ -37,7 +37,7 @@ from youtusic.config import generate_final_config
 from youtusic.main import Youtusic_
 
 
-def main(screen: curses.window) -> NoReturn:
+def main(stdscr: curses.window) -> NoReturn:
     '''
         
     '''
@@ -45,8 +45,12 @@ def main(screen: curses.window) -> NoReturn:
     # load our configuration, from arg line & TOML file
     user_config = generate_final_config(sys.argv)
 
-    # sets up curses screen
+    # sets up curses stdscr
     curses.echo()
     curses.curs_set(0)
     curses.use_default_colors()
+
+    print('tui')
     
+    stdscr.addstr(str(user_config))
+    stdscr.get_wch()
