@@ -27,6 +27,7 @@ __status__ = 'Development'
 __credits__ = ['Max Harrison', 'edsq']
 
 
+import os
 import tomllib
 from argparse import ArgumentParser
 
@@ -66,7 +67,7 @@ def parse_user_config() -> dict:
     if os.name in ('dos', 'nt'):  # if Windows
         file_paths = [
             os.path.join(
-                os.environ['APPDATA'],
+                os.environ.get('APPDATA', str()),
                 'youtusic',
                 'config.toml'
             ),  # %APPDATA%\youtusic\config.toml
@@ -87,7 +88,7 @@ def parse_user_config() -> dict:
     else:  # if not Windows
         file_paths = [
             os.path.join(
-                os.environ['XDG_CONFIG_HOME'],
+                os.environ.get('XDG_CONFIG_HOME', str()),
                 'youtusic', 
                 'config.toml'
             ),  # $XDG_CONFIG_HOME/youtusic/config.toml
@@ -128,7 +129,7 @@ def generate_final_config(argv: list) -> dict:
     and default options
     '''
 
-    arg_cfg = parse_arg_line(argv)
+    arg_cfg = {}  # parse_arg_line(argv)
     file_cfg = parse_user_config()
     default_cfg = {}
 

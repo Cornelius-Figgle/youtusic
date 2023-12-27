@@ -31,11 +31,23 @@ from spotipy.oauth2 import SpotifyClientCredentials
 
 
 class Youtusic_:
-    def __init__(self) -> None:
+    def __init__(self, user_config: dict) -> None:
         '''
             
         '''
 
-        ...
+        self.user_config = user_config
 
-    
+    def get_spotify_playlist() -> dict:
+        '''
+            
+        '''
+
+        # initialises Spotify object
+        oauth = SpotifyClientCredentials(
+            client_id=self.user_config['spotify']['id'],
+            client_secret=self.user_config['spotify']['secret'],
+        )
+        sp = spotipy.Spotify(
+            client_credentials_manager=oauth
+        )
