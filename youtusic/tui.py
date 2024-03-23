@@ -54,6 +54,7 @@ def main(stdscr: curses.window) -> NoReturn:
     stdscr.addstr(f'Using config:\n{str(user_config)}\n')
     stdscr.addstr('\nPress any key if this is correct, or Ctrl-C to abort')
     stdscr.get_wch()
+    curses.clear()
 
     # initialise the main class
     obj = Youtusic_(user_config=user_config)
