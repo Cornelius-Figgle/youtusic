@@ -119,27 +119,43 @@ def parse_user_config() -> dict:
             # merge main and auth files
             merged_file_configs = dict()
             for header in loaded_file.keys():
-                merged_file_configs[header] = {
-                    **loaded_file[header],
-                    **loaded_auth_file[header]
-                }
-
+                try:
+                    merged_file_configs[header] = {
+                        **loaded_file[header],
+                        **loaded_auth_file[header]
+                    }
+                except KeyError:
+                    # if section is not in auth file, only use main file
+                    merged_file_configs[header] = loaded_file[header]
             return merged_file_configs
         else:
             continue
 
         # if no file found, return blank dict
-        return {}
+        return dict()
 
 def generate_final_config(argv: list) -> dict:
     '''
-    Combines configuration from command-line arguements, the user config file
-    and default options
+    Combines configuration from command-line arguements and config files
     '''
 
-    arg_cfg = {}  # parse_arg_line(argv)
+    arg_cfg = dict()  # parse_arg_line(argv)
     file_cfg = parse_user_config()
-    default_cfg = {}
 
-    # merge arg onto file, then the result onto the default
-    return {**default_cfg, **{**file_cfg, **arg_cfg}}
+    # merge arg onto file
+    complete_cfg = dict()
+    for header in file_cfg.keys():
+        try:
+            complete_cfg[header] = {
+                **file_cfg[header],
+                **arg_cfg[header]
+            }
+        except KeyError:
+            # if config not present in args, only use file config
+            complete_cfg[header] = file_cfg[header]
+    for header in arg_cfg.keys():
+        if header not in file_cfg.keys():
+            # if config present in args but not file, only use args config
+            complete_cfg[header] = arg_cfg[header]
+    
+    return complete_cfg

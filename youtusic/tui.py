@@ -29,7 +29,6 @@ __credits__ = ['Max Harrison', 'edsq']
 import curses
 import os
 import sys
-from typing import NoReturn
 
 from pick import pick  # install from my fork
 
@@ -37,7 +36,7 @@ from youtusic.config import generate_final_config
 from youtusic.main import Youtusic_
 
 
-def main(stdscr: curses.window) -> NoReturn:
+def main(stdscr: curses.window) -> None:
     '''
     The main function that controls the TUI for Youtusic. Called by __main__        
     '''

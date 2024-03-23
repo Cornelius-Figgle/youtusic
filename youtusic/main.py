@@ -38,7 +38,9 @@ class Youtusic_:
 
         self.user_config = user_config
 
-        if self.user_config['spotify']['enable']:
+        if ('spotify' in self.user_config.keys()
+            and self.user_config['spotify']['enable']):
+
             # if spotify auth details are present in the config
             self.sp = spotipy.Spotify(
                 client_credentials_manager = SpotifyClientCredentials(
