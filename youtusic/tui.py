@@ -57,3 +57,4 @@ def main(stdscr: curses.window) -> None:
 
     # initialise the main class
     obj = Youtusic_(user_config=user_config)
+    stdscr.addstr(obj.get_foreign_playlists('spotify')); stdscr.get_wch()

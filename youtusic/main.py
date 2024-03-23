@@ -51,9 +51,16 @@ class Youtusic_:
 
         return
 
-    def get_foreign_playlist(source: str) -> None:
+    def get_foreign_playlists(self, source: str) -> list:
         '''
-        
+        Returns a list of playlists available from source
+        '''
+
+        return self.sp.current_user_playlists()
+
+    def get_foreign_playlist_content(self, source: str) -> None:
+        '''
+        Returns the contents of a playlist from source
         '''
 
         ...
