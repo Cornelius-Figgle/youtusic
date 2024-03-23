@@ -38,16 +38,14 @@ class Youtusic_:
 
         self.user_config = user_config
 
-    def get_spotify_playlist() -> dict:
+    def init_spotify() -> spotify.Spotify:
         '''
-            
+        initialises the Spotify API object
         '''
 
-        # initialises Spotify object
-        oauth = SpotifyClientCredentials(
-            client_id=self.user_config['spotify']['id'],
-            client_secret=self.user_config['spotify']['secret'],
-        )
-        sp = spotipy.Spotify(
-            client_credentials_manager=oauth
+        return spotipy.Spotify(
+            client_credentials_manager = SpotifyClientCredentials(
+                client_id = self.user_config['spotify']['id'],
+                client_secret = self.user_config['spotify']['secret'],
+            )
         )
