@@ -39,7 +39,7 @@ from youtusic.main import Youtusic_
 
 def main(stdscr: curses.window) -> NoReturn:
     '''
-        
+    The main function that controls the TUI for Youtusic. Called by __main__        
     '''
 
     # load our configuration, from arg line & TOML file
@@ -49,6 +49,11 @@ def main(stdscr: curses.window) -> NoReturn:
     curses.echo()
     curses.curs_set(0)
     curses.use_default_colors()
-   
-    stdscr.addstr(str(user_config))
+
+    # for debugging
+    stdscr.addstr(f'Using config:\n{str(user_config)}\n')
+    stdscr.addstr('\nPress any key if this is correct, or Ctrl-C to abort')
     stdscr.get_wch()
+
+    # initialise the main class
+    obj = Youtusic_(user_config=user_config)

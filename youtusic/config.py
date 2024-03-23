@@ -34,7 +34,7 @@ from argparse import ArgumentParser
 
 def parse_arg_line(argv: list) -> dict:
     '''
-    create a config from the command-line arguements passed to the program
+    Create a config from the command-line arguements passed to the program
     '''
 
     # create main object
@@ -60,7 +60,7 @@ def parse_arg_line(argv: list) -> dict:
 
 def parse_user_config() -> dict:
     ''' 
-    create a config from the `config.toml` file
+    Create a config from the `config.toml` file
     '''
 
     # lists possible config file locations
@@ -111,12 +111,20 @@ def parse_user_config() -> dict:
                 'auth.toml'
             )
             
-            # load file and return the subsequent dictionary
+            # load files
             with open(path, 'rb') as file, open(auth_path, 'rb') as auth_file:
+                loaded_file = tomllib.load(file)
+                loaded_auth_file = tomllib.load(auth_file)
+                
+            # merge main and auth files
+            merged_file_configs = dict()
+            for header in loaded_file.keys():
+                merged_file_configs[header] = {
+                    **loaded_file[header],
+                    **loaded_auth_file[header]
+                }
 
-                # merge main and auth files
-                return {**tomllib.load(file), **tomllib.load(auth_file)}
-            break
+            return merged_file_configs
         else:
             continue
 
