@@ -59,3 +59,12 @@ class Youtusic_:
         ...
 
         return
+
+    def check_playlist_information(self, fetch_source: str, playlist_content: list) -> None:
+        '''
+        
+        '''
+
+        ...
+
+        return

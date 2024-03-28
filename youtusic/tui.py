@@ -57,3 +57,8 @@ def main(stdscr: curses.window) -> None:
 
     # initialise the main class
     obj = Youtusic_(user_config=user_config)
+    
+    url = 'https://open.spotify.com/playlist/0FL6tgLEgokoak8Ti8Dr3r?si=e86d17c01aac4db3'
+    uri = url.split('/')[-1].split('?')[0]
+
+    stdscr.addstr(str(obj.get_foreign_playlist_content(source='spotify',uri=uri)))
